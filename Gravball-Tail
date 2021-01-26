@@ -1,0 +1,89 @@
+int rad = 60;               // Ball radius
+float xpos = 600;           // Initial x position
+float ypos = 200;           // Initial Y position
+float xpos_proj, ypos_proj; // projected positions for next frame
+float t_contact;            // time variable for tracking wall contact
+float yvel_rebound;         // rebound velocity from wall
+float xvel = 280;           // x velocity of ball
+float yvel = -200;          // y velocity of ball
+
+float dt, last, now;        // time variables
+float g = 980;              // acceleration due to gravity
+float[][] trail = new float[60][2];  // array to hold previous ball positions for trail
+
+
+void setup() 
+{
+  // set all trail positions to starting position
+  for (int i = 0; i < (trail.length); i++){
+    trail[i][0] = xpos;
+    trail[i][1] = ypos;
+  }
+  last = millis();  // set initial time
+  size(1000, 800);  // window size
+  frameRate(100);    
+  noStroke();       
+  ellipseMode(RADIUS);
+}
+
+void draw() 
+{
+  // draw background
+  fill(0);
+  rect(0,0,width,height);
+  
+  // set time and time difference between frames
+  now = millis();
+  dt = (now - last) * 0.001; // 0.001 converts ms to seconds
+  last = millis();
+  
+  // update x position
+  xpos_proj = xpos + ( xvel * dt );  // project x position of next frame
+  // collision with right wall
+  if (xpos_proj+rad > width) {
+    xpos = (2*width) - xpos_proj - (2*rad);
+    xvel *= -1;
+  }
+  // collision with left wall
+  else if(xpos_proj - rad < 0){
+    xpos = (2*rad) - xpos_proj;
+    xvel *= -1;
+  }
+  // no collision
+  else{
+    xpos = xpos_proj;
+  }
+  
+  // update y position
+  ypos_proj = ypos + (0.5*g*sq(dt)) + (yvel*dt); // project y position of next frame
+  // collision with bottom
+  if (ypos_proj+rad > height) {
+    t_contact = (-yvel + sqrt(sq(yvel)+(2*g*(height-ypos-rad))))/g;
+    yvel_rebound = -(yvel+(g*t_contact));
+    ypos = height - rad + (0.5 * g * sq((dt-t_contact))) + (yvel_rebound*(dt - t_contact));
+    yvel = yvel_rebound + (g*(dt-t_contact));
+  }
+  // no collision
+  else{
+    ypos = ypos_proj;
+    yvel = yvel + (g*dt);
+  }
+  
+  // update current position within trail aray
+  trail[trail.length-1][0] = xpos;
+  trail[trail.length-1][1] = ypos;
+  
+  // update trail array
+  for (int i = 0; i < trail.length -1; i++) {
+    // shift elements, removing last trail element
+    trail[i][0] = trail[i+1][0];
+    trail[i][1] = trail[i+1][1];
+  }
+  
+  // draw ball and trail
+  for (int i = 0; i < (trail.length); i++) {
+    // color ball differently with time, draw trail elements with decreasing size and opacity
+    fill(200+100*sin(0.001*millis()),200+100*sin(0.005*millis()), 200+100*sin(0.003*millis()), (255/trail.length)*(i+1));
+    ellipse(trail[i][0], trail[i][1], (rad/trail.length)*(i+1), (rad/trail.length)*(i+1));
+  }  
+}
