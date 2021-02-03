@@ -1,2 +1,3 @@
 # Simulate-Balls
-A collection of simulations regarding simple balls, collisions, and gravitational force. These run using Processing, a ava-based framework.
+A collection of kinematics simulations created using Processing, a language utilizing a ava framework.
+
